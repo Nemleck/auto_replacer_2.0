@@ -18,7 +18,9 @@
         "clear": "²clear"
     },
 
-    "external_keys": [],
+    "external_keys": [
+        "texts.json"
+    ],
 
     "keys": [
         {

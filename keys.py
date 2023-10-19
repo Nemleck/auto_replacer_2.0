@@ -69,17 +69,19 @@ class Keys:
 
         self.last_keys.append(event.name)
 
-        
+        # If the list is "full", delete the first element
         if len(self.last_keys) > self.limit:
             if len(self.last_keys[0]) == 1:
                 self.last_text = self.last_text[1:]
 
             del self.last_keys[0]
         
+        # Delete letters
         if event.name == "backspace":
             del self.last_keys[-1]
             self.last_text = self.last_text[0:-1]
-
+        
+        # "Normal" key
         if len(name) == 1:
             self.last_text += name
 
@@ -87,39 +89,44 @@ class Keys:
 
             # Test the key if on
             if self.on:
-                for config in self.configs:
-                    is_there_input, start_input_params, to_test_text = self.endswith(config["input"], config["params"])
-                    
-                    input_params = deepcopy(start_input_params)
-                    
-                    if is_there_input:
-                        output_text = config["output"]
+                self.is_in_config()
+    
+    def is_in_config(self):
+        # Test all configs
+        for config in self.configs:
+            is_there_input, start_input_params, to_test_text = self.endswith(config["input"], config["params"])
+            
+            input_params = deepcopy(start_input_params)
+            
 
-                        # Perform operations
-                        op = config["params"]["operation"]
-                        if op != None:
-                            for var in op.keys():
-                                text_to_eval = self.get_replaced_text(op[var], config, input_params)
-                                
-                                try:
-                                    input_params[var] = str(eval(text_to_eval))
-                                except Exception as e:
-                                    print(e.args)
-                                    input_params[var] = "error"
+            if is_there_input:
+                output_text = config["output"]
 
-                        # Replace str params with actual content
-                        output_text = self.get_replaced_text(output_text, config, input_params)
-
-                        if config["params"]["keep_text"] == False:
-                            to_remove = len(self.get_replaced_text(config["input"], config, input_params))
-
-                            self.remove(to_remove)
-                            pass
+                # Perform operations
+                op = config["params"]["operation"]
+                if op != None:
+                    for var in op.keys():
+                        text_to_eval = self.get_replaced_text(op[var], config, input_params)
                         
-                        self.write(output_text)
+                        try:
+                            input_params[var] = str(eval(text_to_eval))
+                        except Exception as e:
+                            print(e.args)
+                            input_params[var] = "error"
 
-                        self.last_text = ""
-                        self.last_keys = []
+                # Replace str params with actual content
+                output_text = self.get_replaced_text(output_text, config, input_params)
+
+                if config["params"]["keep_text"] == False:
+                    to_remove = len(self.get_replaced_text(config["input"], config, input_params))
+
+                    self.remove(to_remove)
+                    pass
+                
+                self.write(output_text)
+
+                self.last_text = ""
+                self.last_keys = []
     
     def get_replaced_text(self, text, config, input_params):
         separator = config["params"]["separator"]
@@ -134,28 +141,45 @@ class Keys:
         if params == None:
             params = self.parameters["global_params"]["default_config_params"]
 
+        # Get params
         separator = params["separator"]
         case_sensitive = params["case_sensitive"]
 
+        # Lower the text if lower enabled
         last_text = self.last_text
         if not case_sensitive:
             last_text = last_text.lower()
             text = text.lower()
 
+        # No options ?
         if separator == None:
             return last_text.endswith(text), None, text
         
+        # Options ?
         else:
+            # Get text without params, and params
             to_test_text, to_test_params = self.get_text_and_params(text, separator)
             input_text, input_params = self.get_text_and_params(last_text, separator)
 
-            params = {}
-            for i in range(len(to_test_params)-1, -1, -1):
-                if len(input_params) > i:
+            # Make the two params lists have the same len, taking the last elements
+            excess_values = len(input_params) - len(to_test_params)
+
+            # Too much or just enough parameters in user input
+            if excess_values >= 0:
+                input_params = input_params[excess_values:]
+
+                print(input_params, to_test_params)
+
+                # Link the config input param to the user input param in one dict
+                params = {}
+                for i in range(len(to_test_params)):
                     params[to_test_params[i]] = input_params[i]
 
-            return input_text.endswith(to_test_text), params, to_test_text
-    
+                return input_text.endswith(to_test_text), params, to_test_text
+            
+            else: # No parameters in user input
+                return False, {}, to_test_text
+
     def get_text_and_params(self, text, separator):
         final_text = ""
         params = []
@@ -194,7 +218,10 @@ class Keys:
     def get_stringed_configs(self):
         final_text = ""
         for config in self.configs:
-            final_text += f'"{config["input"]}" = "{config["output"]}"\n'
+            output = config["output"].replace("\n","")
+            input = config["input"].replace("\n","")
+
+            final_text += f'{input} => {output}\n'
         
         return final_text
 
