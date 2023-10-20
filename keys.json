@@ -18,60 +18,14 @@
         "clear": "²clear"
     },
 
-    "external_keys": [
-        "texts.json"
-    ],
+    "external_keys": [],
 
     "keys": [
         {
             "input": "²sent1",
-            "output": "You can also make pre-written sentences !",
+            "output": "This is an example of registered sentences !",
             "params": {
                 "case_sensitive": false
-            }
-        },
-        {
-            "input": "print(arg)",
-            "output": "I print : '(msg)'",
-            "params": {
-                "separator": "()",
-                "operation": {
-                    "msg": "'Coucou' + '(arg)'"
-                }
-            }
-        },
-        {
-            "input": "²search{theme}",
-            "output": "Voici ce que j'ai trouvé sur le wiki :\n{part_1}\n{part_2}",
-            "params": {
-                "case_sensitive": false,
-                "separator": "{}",
-                "operation": {
-                    "res": "get_wiki_info('{theme}')",
-                    "part_1": "{res}[0]",
-                    "part_2": "{res}[1]"
-                }
-            }
-        },
-        {
-            "input": "²calc{calcul}",
-            "output": "{calcul} = {result}",
-            "params": {
-                "case_sensitive": false,
-                "separator": "{}",
-                "operation": {
-                    "result": "{calcul}"
-                }
-            }
-        },
-        {
-            "input": "²configs",
-            "output": "{result}",
-            "params": {
-                "separator": "{}",
-                "operation": {
-                    "result": "self.get_stringed_configs()"
-                }
             }
         }
     ]
