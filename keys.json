@@ -1,0 +1,32 @@
+{
+    "global_params": {
+        "max_keys": 50,
+        "default_config_params": {
+            "keep_text": false,
+            "case_sensitive": true,
+            "separator": null,
+            "operation": null
+        }
+    },
+    
+    "special_keys": {
+        "end": "²end",
+        "reload": "²r",
+        "on": "²on",
+        "off": "²off",
+        "hey": "²hey",
+        "clear": "²clear"
+    },
+
+    "external_keys": [],
+
+    "keys": [
+        {
+            "input": "²sent1",
+            "output": "This is an example of registered sentences !",
+            "params": {
+                "case_sensitive": false
+            }
+        }
+    ]
+}
