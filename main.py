@@ -1,5 +1,11 @@
 from keys import *
 from time import sleep
+from os import listdir
+from json import dump
+
+if not "keys.json" in listdir():
+    with open("keys.json", "w") as f:
+        pass
 
 keys = Keys()
 def on_press(event):

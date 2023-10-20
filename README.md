@@ -1,3 +1,6 @@
-For now there's no help, because I'm still working on it.
-However, you can check the first version of this program named "math_replacer", and the README in it !
-By looking to the json files, you may understand how it works. I will make a README as soon as possible.
+# Auto Replacer
+
+- This program will **help you writing texts**, **do maths**, **search on wiki**, etc...
+- To make this work, you'll just have to **start the `start.bat` file**.
+- You can also create your own configurations. To make this, you may want to **edit the `keys.json` file**.
+*(If there's no `keys.json` file, just launch the script once)*
