@@ -87,18 +87,19 @@ class Keys:
 
             self.is_there_special_event()
 
-            # Test the key if on
-            if self.on:
-                self.is_in_config()
+        # Test the key if on
+        if self.on:
+            self.is_in_config()
     
     def is_in_config(self):
         # Test all configs
-        for config in self.configs:
-            is_there_input, start_input_params, to_test_text = self.endswith(config["input"], config["params"])
-            
-            input_params = deepcopy(start_input_params)
-            
 
+        for config in self.configs:
+            input_params = config["params"]
+            input_text, input_args = self.get_text_and_params(self.last_text, config["params"]["separator"])
+
+            is_there_input, common_params = self.endswith(config["input"], input_text, input_args, config["params"])
+            
             if is_there_input:
                 output_text = config["output"]
 
@@ -106,19 +107,20 @@ class Keys:
                 op = config["params"]["operation"]
                 if op != None:
                     for var in op.keys():
-                        text_to_eval = self.get_replaced_text(op[var], config, input_params)
+                        text_to_eval = self.get_replaced_text(op[var], config, common_params)
                         
                         try:
-                            input_params[var] = str(eval(text_to_eval))
+                            common_params[var] = str(eval(text_to_eval))
                         except Exception as e:
                             print(e.args)
-                            input_params[var] = "error"
+                            common_params[var] = "error"
 
                 # Replace str params with actual content
-                output_text = self.get_replaced_text(output_text, config, input_params)
+                output_text = self.get_replaced_text(output_text, config, common_params)
 
+                # Delete text if not keep_text param enabled
                 if config["params"]["keep_text"] == False:
-                    to_remove = len(self.get_replaced_text(config["input"], config, input_params))
+                    to_remove = len(self.get_replaced_text(config["input"], config, common_params))
 
                     self.remove(to_remove)
                     pass
@@ -128,59 +130,73 @@ class Keys:
                 self.last_text = ""
                 self.last_keys = []
     
-    def get_replaced_text(self, text, config, input_params):
+    def get_replaced_text(self, text:str, config:dict, common_params:dict):
+        input_args, output_args = list(common_params.keys()), list(common_params.values())
         separator = config["params"]["separator"]
 
-        if input_params:
-            for param in input_params.keys():
-                text = text.replace(separator[0] + param + separator[1], input_params[param])
+        if input_args:
+            for i in range(len(input_args)):
+                text = text.replace(separator[0] + input_args[i] + separator[1], output_args[i])
         
         return text
 
-    def endswith(self, text: str, params=None):
+    def endswith(self, text: str|list[str], input_text, input_args, params=None):
         if params == None:
             params = self.parameters["global_params"]["default_config_params"]
 
-        # Get params
-        separator = params["separator"]
-        case_sensitive = params["case_sensitive"]
+        if type(text) is str:
+            # Get params
+            separator = params["separator"]
+            case_sensitive = params["case_sensitive"]
 
-        # Lower the text if lower enabled
-        last_text = self.last_text
-        if not case_sensitive:
-            last_text = last_text.lower()
-            text = text.lower()
+            # Lower the text if lower enabled
+            last_text = self.last_text
+            if not case_sensitive:
+                last_text = last_text.lower()
+                text = text.lower()
 
-        # No options ?
-        if separator == None:
-            return last_text.endswith(text), None, text
-        
-        # Options ?
-        else:
-            # Get text without params, and params
-            to_test_text, to_test_params = self.get_text_and_params(text, separator)
-            input_text, input_params = self.get_text_and_params(last_text, separator)
-
-            # Make the two params lists have the same len, taking the last elements
-            excess_values = len(input_params) - len(to_test_params)
-
-            # Too much or just enough parameters in user input
-            if excess_values >= 0:
-                input_params = input_params[excess_values:]
-
-                print(input_params, to_test_params)
-
-                # Link the config input param to the user input param in one dict
-                params = {}
-                for i in range(len(to_test_params)):
-                    params[to_test_params[i]] = input_params[i]
-
-                return input_text.endswith(to_test_text), params, to_test_text
+            # No options ?
+            if separator == None:
+                return last_text.endswith(text), {}
             
-            else: # No parameters in user input
-                return False, {}, to_test_text
+            # Options ?
+            else:
+                # Get text without params, and params
+                to_test_text, to_test_params = self.get_text_and_params(text, separator)
+
+                # Make the two params lists have the same len, taking the last elements
+                excess_values = len(input_args) - len(to_test_params)
+
+                # Too much or just enough parameters in user input
+                if excess_values >= 0:
+                    input_args = input_args[excess_values:]
+
+                    print(input_args, to_test_params)
+
+                    # Link the config input param to the user input param in one dict
+                    common_params = {}
+                    for i in range(len(to_test_params)):
+                        common_params[to_test_params[i]] = input_args[i]
+
+                    return input_text.endswith(to_test_text), common_params
+                
+                else: # No parameters in user input
+                    return False, {}
+        else:
+            # Input is list ?
+            check = True
+            for key in text:
+                if not key in self.last_keys:
+                    check = False
+                    break
+            
+            return check, {}
 
     def get_text_and_params(self, text, separator):
+        # No separator configured
+        if not separator:
+            return text, None
+        
         final_text = ""
         params = []
         param_text = ""
@@ -247,7 +263,7 @@ class Keys:
         spec_keys = self.parameters["special_keys"]
         
         for event in spec_keys.keys():
-            is_inputed, _, _ = self.endswith(spec_keys[event])
+            is_inputed = self.last_text.endswith(spec_keys[event])
 
             if is_inputed:
                 if event == "end":

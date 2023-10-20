@@ -27,6 +27,33 @@
             "params": {
                 "case_sensitive": false
             }
+        },
+        {
+            "input": "²like{food}",
+            "output": "It seems that you like {food}",
+            "params": {
+                "separator": "{}"
+            }
+        },
+        {
+            "input": "²search{theme}",
+            "output": "Voici ce que j'ai trouvé sur le wiki à propos de {theme} :\n{part1}\n{part2}",
+            "params": {
+                "separator": "{}",
+                "operation": {
+                    "result": "get_wiki_info('{theme}')",
+                    "part1": "{result}[0]",
+                    "part2": "{result}[1]"
+                }
+            }
+        },
+        {
+            "input": "²select_all",
+            "output": ["ctrl", "a", "c"]
+        },
+        {
+            "input": ["esc"],
+            "output": "echapped !"
         }
     ]
 }
