@@ -119,8 +119,8 @@ class Keys:
                 output_text = self.get_replaced_text(output_text, config, common_params)
 
                 # Delete text if not keep_text param enabled
-                if config["params"]["keep_text"] == False:
-                    to_remove = len(self.get_replaced_text(config["input"], config, common_params))
+                if type(config["input"]) is str and config["params"]["keep_text"] == False:
+                    to_remove = len(self.get_replaced_text(config["input"], config, common_params)) + (len(common_params))
 
                     self.remove(to_remove)
                     pass

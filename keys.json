@@ -54,6 +54,16 @@
         {
             "input": ["esc"],
             "output": "echapped !"
+        },
+        {
+            "input": "²calc(op)",
+            "output": "(op) = (result)",
+            "params": {
+                "separator": "()",
+                "operation": {
+                    "result": "(op)"
+                }
+            }
         }
     ]
 }
