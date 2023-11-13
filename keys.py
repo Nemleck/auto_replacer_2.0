@@ -129,50 +129,59 @@ class Keys:
                 
                 # Conditions
                 conditions = config["params"]["condition"]
-                test = True
-                for cond in conditions:
-                    print(cond)
-                    # Has previous test been ... ?
-                    if cond["test_if_previous_test_was"] == (not test) :
-                        continue
-
-                    # Reset the test value to True
+                if conditions:
                     test = True
+                    for cond in conditions:
+                        print(cond)
+                        # Has previous test been ... ?
+                        if cond["test_if_previous_test_was"] == (not test) :
+                            continue
 
-                    last_element = None
-                    curr_element = None
-                    for i in range(len(cond["elements"])):
-                        last_element = curr_element
-                        curr_element = self.get_replaced_text(cond["elements"][i], config, common_params)
-                        print("Remplacé ? ", cond["elements"][i], curr_element, common_params)
+                        # Reset the test value to True
+                        test = True
 
-                        if i-1 >= 0:
-                            # Has an element before
-                            print("curr : " + str(curr_element), "\n", "last : " + str(last_element))
-                            if     (cond["mode"] == "=" and curr_element != last_element) \
-                                or (cond["mode"] == ">" and curr_element <= last_element) \
-                                or (cond["mode"] == "<" and curr_element >= last_element):
-                                # Condition false
-                                test = False
+                        last_element = None
+                        curr_element = None
+                        for i in range(len(cond["elements"])):
+                            last_element = curr_element
+                            curr_element = self.get_replaced_text(cond["elements"][i], config, common_params)
+                            print("Remplacé ? ", cond["elements"][i], curr_element, common_params)
 
-                    print("Result : " + str(test))
-                    if cond["operation_result_name"] != None:
+                            if i-1 >= 0:
+                                # Has an element before
+                                print("curr : " + str(curr_element), "\n", "last : " + str(last_element))
+                                if     (cond["mode"] == "=" and curr_element != last_element) \
+                                    or (cond["mode"] == "~=" and not (last_element in curr_element)) \
+                                    or (cond["mode"] == "=~" and not (curr_element in last_element)) \
+                                    or (cond["mode"] == ">" and last_element <= curr_element) \
+                                    or (cond["mode"] == "<" and last_element >= curr_element) \
+                                    or (cond["mode"] == ">=" and last_element < curr_element) \
+                                    or (cond["mode"] == "<=" and last_element > curr_element):
+                                    # Condition false
+                                    test = False
+
+                        print("Result : " + str(test))
+
                         if test and cond["success_text"] != None:
-                            # Put success text in var
-                            common_params[cond["operation_result_name"]] = cond["success_text"]
+                            success = self.get_replaced_text(cond["success_text"], config, common_params)
+
+                            if cond["operation_result_name"] != None:
+                                # Put success text in var
+                                common_params[cond["operation_result_name"]] = success
+                            else:
+                                # Write success text
+                                self.write(success)
 
                         elif not test and cond["failure_text"] != None:
-                            # Put failure text in var
-                            common_params[cond["operation_result_name"]] = cond["failure_text"]
-                    
-                    else:
-                        if test and cond["success_text"] != None:
-                            # Write success text
-                            self.write(cond["success_text"])
+                            failure = self.get_replaced_text(cond["failure_text"], config, common_params)
 
-                        elif not test and cond["failure_text"] != None:
-                            # Write failure text
-                            self.write(cond["failure_text"])
+                            if cond["operation_result_name"] != None:
+                                # Put failure text in var
+                                common_params[cond["operation_result_name"]] = failure
+                            else:
+                                # Write failure text
+                                self.write(failure)
+                            
 
                 # Replace str params with actual content
                 output_text = self.get_replaced_text(output_text, config, common_params)

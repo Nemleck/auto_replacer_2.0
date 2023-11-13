@@ -121,12 +121,55 @@
                     {
                         "elements": ["{low_agr}", "y"],
                         "mode": "=",
-                        "success_text": "You agree ! -> Hello !",
+                        "success_text": "You said {agreement}, yay ! -> Hello !",
                         "failure_text": "You don't agree...",
                         "operation_result_name": "result"
                     }
                 ],
-                "repeat_output": 2
+                "repeat_output": 1
+            }
+        },
+        {
+            "input": "N_ou_R{oper}",
+            "output": "{oper} is {math_result}, {test_result}",
+            "params": {
+                "separator": "{}",
+                "operation": {
+                    "math_result": "{oper}",
+                    "rounded": "round({math_result})"
+                },
+                "condition": [
+                    {
+                        "elements": ["{math_result}", "{rounded}"],
+                        "mode": "=",
+                        "success_text": "and it belongs to N !",
+                        "failure_text": "and it doesn't belong to N...",
+                        "operation_result_name": "test_result"
+                    }
+                ]
+            }
+        },
+        {
+            "input": "big_or_small{num1}{num2}",
+            "output": "{num1} is {result} {num2}",
+            "params": {
+                "separator": "{}",
+                "condition": [
+                    {
+                        "elements": ["{num1}", "{num2}"],
+                        "mode": ">",
+                        "success_text": "bigger than",
+                        "failure_text": "smaller than",
+                        "operation_result_name": "result"
+                    },
+                    {
+                        "elements": ["{num1}", "{num2}"],
+                        "mode": "=",
+                        "success_text": "the same as",
+                        "operation_result_name": "result",
+                        "test_if_previous_test_was": false
+                    }
+                ]
             }
         }
     ]
