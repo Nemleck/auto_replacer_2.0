@@ -5,7 +5,17 @@
             "keep_text": false,
             "case_sensitive": true,
             "separator": null,
-            "operation": null
+            "operation": null,
+            "condition": null,
+            "repeat_output": 1
+        },
+        "default_condition_params": {
+            "elements": [],
+            "mode": "=",
+            "success_text": null,
+            "failure_text": null,
+            "operation_result_name": null,
+            "test_if_previous_test_was": null
         }
     },
     
@@ -97,6 +107,26 @@
                 "operation": {
                     "unicode_char": "latex.convert(r'{latex_char}')"
                 }
+            }
+        },
+        {
+            "input": "²say_hello{agreement}",
+            "output": "{result}",
+            "params": {
+                "separator": "{}",
+                "operation": {
+                    "low_agr": "'{agreement}'.lower()[0]"
+                },
+                "condition": [
+                    {
+                        "elements": ["{low_agr}", "y"],
+                        "mode": "=",
+                        "success_text": "You agree ! -> Hello !",
+                        "failure_text": "You don't agree...",
+                        "operation_result_name": "result"
+                    }
+                ],
+                "repeat_output": 2
             }
         }
     ]

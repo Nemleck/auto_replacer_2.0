@@ -138,6 +138,28 @@ Of course, it's possible to do that :
 
 Just be carefull to add the "," **between** elements, and not after the last.
 
+### Repeat Output
+
+This one is as simple as its name is. 
+
+By default to 1, it writes the output of your configuration the amount of times this parameter is set to.
+Let's see an example :
+
+`part of keys.json`
+```json
+{
+    "input": "Please applause twice.",
+    "output": " Clap !",
+    "params": {
+        "keep_text": true,
+        "case_sensitive": false,
+        "repeat_output": 2
+    }
+}
+```
+
+Here, writing "Please applause twice." would write " Clap ! Clap !".
+
 ## Advanced parameters
 
 ### Basic utilisation
