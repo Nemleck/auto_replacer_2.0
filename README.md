@@ -4,6 +4,12 @@
 - To make this work, you'll just have to **start the `start.bat` file**.
 - You can also create your own configurations. To make this, you may want to **edit the `keys.json` file**.
 
+# Update from v1.0 to v2.0
+
+You have to put the "v1.0_to_v2.0_patch.py" file in the same folder than your old version of auto_replacer.
+Launch it (in a command prompt), and your key files will be updated.
+Then, download the new version on GitHub (this one), and put the corrected keys.json and others files in your new folder, and that's it !
+
 # Configuration of `keys.json`
 
 ## First steps
