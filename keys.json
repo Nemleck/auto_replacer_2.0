@@ -1,6 +1,7 @@
 {
     "global_params": {
         "max_keys": 50,
+        "debug": true,
         "default_config_params": {
             "keep_text": false,
             "case_sensitive": true,

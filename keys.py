@@ -11,6 +11,8 @@ keyboard.on_press_key
 
 class Keys:
     def __init__(self):
+        c.out("info", "Program just started !")
+
         self.last_keys = []
         self.last_text = ""
 
@@ -21,6 +23,7 @@ class Keys:
 
         self.parameters = {}
         self.configs = []
+        self.debug = False
 
         self.load_configs()
     
@@ -53,7 +56,7 @@ class Keys:
             # Condition default params
             if key["params"]["condition"] != None: # We assume that condition is on bc it was set just before
                 if not "default_condition_params" in data["global_params"]:
-                    print("Warning : Conditions won't be available due to your version.")
+                    c.out("warning", "Conditions won't be available due to your version.")
                     continue
                 
                 default_cond_params = data["global_params"]["default_condition_params"]
@@ -64,6 +67,11 @@ class Keys:
 
         self.configs = all_keys
         self.parameters = data
+
+        try:
+            self.debug = data["global_params"]["debug"]
+        except:
+            c.out("error", "Main configuration file should have 'debug' in 'global_params'", "Config Error")
     
     def add_key(self, event):
         if (event.event_type == keyboard.KEY_UP):
@@ -112,7 +120,7 @@ class Keys:
             try:
                 common_params[var] = str(eval(text_to_eval))
             except Exception as e:
-                print(e.args)
+                c.out("error", f"Couldn't make any result of '{text_to_eval}'", "Config Error")
                 common_params[var] = "error"
                 error_params.append(var)
 
@@ -130,6 +138,9 @@ class Keys:
             if is_there_input:
                 output_text = config["output"]
 
+                if self.debug:
+                    c.out("debug", f"Began {output_text} treatment.")
+
                 # Perform operations
                 op = config["params"]["operation"]
                 if op != None:
@@ -138,7 +149,6 @@ class Keys:
                 # Delete text if not keep_text param enabled
                 if type(config["input"]) is str and config["params"]["keep_text"] == False:
                     to_remove = len(self.get_replaced_text(config["input"], config, common_params, True))
-                    print(config["input"], self.get_replaced_text(config["input"], config, common_params, True), to_remove)
 
                     # Avoid backspaces ignored because of already doing key_press
                     time.sleep(0.2)
@@ -149,24 +159,21 @@ class Keys:
                 if conditions:
                     test = True
                     for cond in conditions:
-                        print(cond)
                         # Has previous test been ... ?
                         if cond["test_if_previous_test_was"] == (not test) :
                             continue
 
                         # Reset the test value to True
-                        test = True
+                        test = None
 
                         last_element = None
                         curr_element = None
                         for i in range(len(cond["elements"])):
                             last_element = curr_element
                             curr_element = self.get_replaced_text(cond["elements"][i], config, common_params)
-                            print("Remplacé ? ", cond["elements"][i], curr_element, common_params)
 
                             if i-1 >= 0:
                                 # Has an element before
-                                print("curr : " + str(curr_element), "\n", "last : " + str(last_element))
                                 if     (cond["mode"] == "=" and curr_element != last_element) \
                                     or (cond["mode"] == "~=" and not (last_element in curr_element)) \
                                     or (cond["mode"] == "=~" and not (curr_element in last_element)) \
@@ -176,8 +183,17 @@ class Keys:
                                     or (cond["mode"] == "<=" and last_element > curr_element):
                                     # Condition false
                                     test = False
+                                else:
+                                    test = True
+                                
+                                if test == None:
+                                    c.out("warning", f"'{cond['mode']}' is not a valid condition mode.")
+                            
+                                if self.debug:
+                                    c.out("debug", f"Got result '{test}' while comparing '{last_element}' and '{curr_element}' on mode '{cond['mode']}'")
 
-                        print("Result : " + str(test))
+                        if self.debug:
+                            c.out("debug", f"Got global result '{test}' on condition.")
 
                         if test and cond["success_text"] != None:
                             success = self.get_replaced_text(cond["success_text"], config, common_params)
@@ -328,8 +344,6 @@ class Keys:
     def write(self, text: list[str] | str):
         if type(text) is str:
             keyboard.write(text, 0.02)
-
-            # .replace("{","bo").replace("}","bf").replace("[","co").replace("]","cf")
         
         else:
             for key in text:
@@ -340,7 +354,6 @@ class Keys:
 
     def remove(self, num):
         for i in range(num):
-            print(i)
             keyboard.press_and_release("backspace")
             time.sleep(0.02)
 
@@ -379,6 +392,8 @@ class Keys:
                 
                 else:
                     msg = "What is supposed to be this event ?"
+                
+                c.out("info", f"Used event {event} !")
 
                 self.remove(len(spec_keys[event]))
                 self.write(msg)

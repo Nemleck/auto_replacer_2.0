@@ -16,6 +16,8 @@ class Console:
             color = "33"
         elif msg_color == "error":
             color = "31"
+        elif msg_color == "debug":
+            color = "34"
         
         if msg_type == None:
             msg_type = msg_color

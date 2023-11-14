@@ -272,17 +272,23 @@ The content of this new file would be :
 ```json
 "global_params": {
     "max_keys": 50,
+    "debug": true,
     "default_config_params": {
         "keep_text": false,
         "case_sensitive": true,
         "separator": null,
-        "operation": null
-    }
-}
+        "operation": null,
+        "condition": null,
+        "repeat_output": 1
+    },
+    ...
+},
 ```
 
 This is on the top of your `keys.json` file.
 
 - "max_keys" is the max size of registered text. In other words, it accepts 50 letters maximum. Doing inputs with more than 50 won't work. You can extend this limit, but it may more lag a bit.
+
+- "debug" lets you enable the whole debug mode (if set to true) to see what's the problem in your configurations.
 
 - "default_config_params" is the default value for all the parameters of configurations. You can change it if you want, to make all configurations accept lower case, to keep all the text written, etc...
