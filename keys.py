@@ -103,6 +103,21 @@ class Keys:
         if self.on:
             self.is_in_config()
     
+    def operation_vars(self, common_params, op, config):
+        error_params = []
+
+        for var in op.keys():
+            text_to_eval = self.get_replaced_text(op[var], config, common_params)
+            
+            try:
+                common_params[var] = str(eval(text_to_eval))
+            except Exception as e:
+                print(e.args)
+                common_params[var] = "error"
+                error_params.append(var)
+
+        return common_params, error_params
+    
     def is_in_config(self):
         # Test all configs
 
@@ -118,14 +133,16 @@ class Keys:
                 # Perform operations
                 op = config["params"]["operation"]
                 if op != None:
-                    for var in op.keys():
-                        text_to_eval = self.get_replaced_text(op[var], config, common_params)
-                        
-                        try:
-                            common_params[var] = str(eval(text_to_eval))
-                        except Exception as e:
-                            print(e.args)
-                            common_params[var] = "error"
+                    common_params, error_params = self.operation_vars(common_params, op, config)
+                
+                # Delete text if not keep_text param enabled
+                if type(config["input"]) is str and config["params"]["keep_text"] == False:
+                    to_remove = len(self.get_replaced_text(config["input"], config, common_params, True))
+                    print(config["input"], self.get_replaced_text(config["input"], config, common_params, True), to_remove)
+
+                    # Avoid backspaces ignored because of already doing key_press
+                    time.sleep(0.2)
+                    self.remove(to_remove)
                 
                 # Conditions
                 conditions = config["params"]["condition"]
@@ -181,17 +198,15 @@ class Keys:
                             else:
                                 # Write failure text
                                 self.write(failure)
+                
+                op = config["params"]["operation"]
+                if op != None and len(error_params) > 0:
+                    for param in error_params:
+                        common_params, _ = self.operation_vars(common_params, 
+                                            {param: op[param]}, config)
                             
-
                 # Replace str params with actual content
                 output_text = self.get_replaced_text(output_text, config, common_params)
-
-                # Delete text if not keep_text param enabled
-                if type(config["input"]) is str and config["params"]["keep_text"] == False:
-                    to_remove = len(self.get_replaced_text(config["input"], config, common_params)) + (len(common_params))
-
-                    self.remove(to_remove)
-                    pass
                 
                 for n in range(input_params["repeat_output"]):
                     self.write(output_text)
@@ -199,13 +214,16 @@ class Keys:
                 self.last_text = ""
                 self.last_keys = []
     
-    def get_replaced_text(self, text:str, config:dict, common_params:dict):
+    def get_replaced_text(self, text:str, config:dict, common_params:dict, keep_separator=False):
         input_args, output_args = list(common_params.keys()), list(common_params.values())
         separator = config["params"]["separator"]
 
         if input_args:
             for i in range(len(input_args)):
-                text = text.replace(separator[0] + input_args[i] + separator[1], output_args[i])
+                if not keep_separator:
+                    text = text.replace(separator[0] + input_args[i] + separator[1], output_args[i])
+                else:
+                    text = text.replace(separator[0] + input_args[i] + separator[1], separator[0] + output_args[i] + separator[1])
         
         return text
 
@@ -309,7 +327,7 @@ class Keys:
 
     def write(self, text: list[str] | str):
         if type(text) is str:
-            keyboard.write(text, 0.01)
+            keyboard.write(text, 0.02)
 
             # .replace("{","bo").replace("}","bf").replace("[","co").replace("]","cf")
         
@@ -322,8 +340,9 @@ class Keys:
 
     def remove(self, num):
         for i in range(num):
+            print(i)
             keyboard.press_and_release("backspace")
-            time.sleep(0.01)
+            time.sleep(0.02)
 
     def is_there_special_event(self):
         spec_keys = self.parameters["special_keys"]
@@ -366,6 +385,9 @@ class Keys:
 
                 time.sleep(0.5)
                 self.remove(len(msg))
+
+                if event == "end":
+                    exit() # Doesn't work on main.py
 
                 del self.last_keys[-1 * len(spec_keys[event])]
                 self.last_text = self.last_text[0:-len(spec_keys[event])]
