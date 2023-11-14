@@ -26,6 +26,9 @@ class Keys:
         self.debug = False
 
         self.load_configs()
+
+        if self.limit > 100:
+            c.out("warning", "Limit bigger than 100 may cause lag.")
     
     def load_configs(self):
         all_keys = []
@@ -69,9 +72,14 @@ class Keys:
         self.parameters = data
 
         try:
+            self.limit = data["global_params"]["max_keys"]
+        except:
+            c.out("error", "Main configuration file should have set the keys limit 'max_keys' in 'global_params'.", "Config Error")
+        
+        try:
             self.debug = data["global_params"]["debug"]
         except:
-            c.out("error", "Main configuration file should have 'debug' in 'global_params'", "Config Error")
+            c.out("error", "Main configuration file should have 'debug' in 'global_params'.", "Config Error")
     
     def add_key(self, event):
         if (event.event_type == keyboard.KEY_UP):
@@ -119,6 +127,9 @@ class Keys:
             
             try:
                 common_params[var] = str(eval(text_to_eval))
+                
+                if self.debug:
+                    c.out("debug", f"Assigned '{common_params[var]}' to name '{var}'")
             except Exception as e:
                 c.out("error", f"Couldn't make any result of '{text_to_eval}'", "Config Error")
                 common_params[var] = "error"
@@ -139,7 +150,7 @@ class Keys:
                 output_text = config["output"]
 
                 if self.debug:
-                    c.out("debug", f"Began {output_text} treatment.")
+                    c.out("debug", f"Began '{output_text}' treatment with input '{input_text}'.")
 
                 # Perform operations
                 op = config["params"]["operation"]
@@ -190,10 +201,10 @@ class Keys:
                                     c.out("warning", f"'{cond['mode']}' is not a valid condition mode.")
                             
                                 if self.debug:
-                                    c.out("debug", f"Got result '{test}' while comparing '{last_element}' and '{curr_element}' on mode '{cond['mode']}'")
+                                    c.out("debug", f"   Got result '{test}' while comparing '{last_element}' and '{curr_element}' on mode '{cond['mode']}'")
 
                         if self.debug:
-                            c.out("debug", f"Got global result '{test}' on condition.")
+                            c.out("debug", f"   Got global result '{test}' on condition.")
 
                         if test and cond["success_text"] != None:
                             success = self.get_replaced_text(cond["success_text"], config, common_params)
@@ -201,6 +212,9 @@ class Keys:
                             if cond["operation_result_name"] != None:
                                 # Put success text in var
                                 common_params[cond["operation_result_name"]] = success
+                                
+                                if self.debug:
+                                    c.out("debug", f"Assigned success text '{success}' to name '{cond['operation_result_name']}'.")
                             else:
                                 # Write success text
                                 self.write(success)
@@ -211,6 +225,9 @@ class Keys:
                             if cond["operation_result_name"] != None:
                                 # Put failure text in var
                                 common_params[cond["operation_result_name"]] = failure
+
+                                if self.debug:
+                                    c.out("debug", f"Assigned failure text '{failure}' to name '{cond['operation_result_name']}'.")
                             else:
                                 # Write failure text
                                 self.write(failure)
@@ -224,6 +241,9 @@ class Keys:
                 # Replace str params with actual content
                 output_text = self.get_replaced_text(output_text, config, common_params)
                 
+                if self.debug:
+                    c.out("debug", f"Found '{output_text}' as output. Output will be repeated {input_params['repeat_output']} time(s).")
+
                 for n in range(input_params["repeat_output"]):
                     self.write(output_text)
 
